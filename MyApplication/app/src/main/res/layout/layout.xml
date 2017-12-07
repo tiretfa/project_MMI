@@ -15,19 +15,11 @@
         opencv:camera_id="any"
         android:layout_below="@+id/text1"/>
 
-    <TextView
-        android:id="@+id/text1"
+    <Button
+        android:id="@+id/start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#00ff00"
-        android:gravity="center"
-        android:text="test"
-        android:textColor="#ff00ff"
-        android:textColorHighlight="#000000"
-        android:textIsSelectable="true"
-        android:textSize="32sp"
-        android:textStyle="bold" />
-
+        android:text="Button" />
 
 
 </FrameLayout>

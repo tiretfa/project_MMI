@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="/home/lilia/AndroidStudioProjects/MyApplication/openCVLibrary310/src/main/jniLibs"/></dataSet><dataSet config="debug"><source path="/home/lilia/AndroidStudioProjects/MyApplication/openCVLibrary310/src/debug/jniLibs"/></dataSet></merger>
+<merger version="3"><dataSet config="main"><source path="/home/tiretfa/Documents/M2/1er_trim/MMI/project_MMI/MyApplication/openCVLibrary310/src/main/jniLibs"/></dataSet><dataSet config="debug"><source path="/home/tiretfa/Documents/M2/1er_trim/MMI/project_MMI/MyApplication/openCVLibrary310/src/debug/jniLibs"/></dataSet></merger>
