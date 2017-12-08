@@ -1,0 +1,20 @@
+AndroidManifest.xml :
+	ajouter la permission :
+	<uses-permission android:name="android.permission.INTERNET" />
+
+Server android :
+	Dans BluetoothTest MainActivity la class MyServerThread lance le serveur sur le portable
+	Pour le lancer dans le onCreate:
+		Thread myThread = new Thread(new MyServerThread());
+        myThread.start();
+    Le serveur recoit un String et modifie le e1 (EditText).
+    Un listner est ajouter sur e1 et verifie le String e1 s'il est equal à "ok" on le show (Toast)
+    
+    
+Client android :
+	la class BackgroundTask permet de creer un socket et de l'envoi au serveur mais il faut connaitre l'ip et le port du serveur à l'avance 
+	L'envoi du message se fait dans la methode sendData(View v)
+	
+	
+Client/Server PC :
+	meme fonctionnement que les client/server android sauf que les entree et sortie se font sur le System.out
