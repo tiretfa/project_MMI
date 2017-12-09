@@ -4,9 +4,7 @@ package com.example.lilia.myapplication;
  * Created by lilia on 22/11/17.
  */
 import android.app.Activity;
-import android.content.Context;
 import android.content.res.AssetManager;
-import org.opencv.imgcodecs.Imgcodecs;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -14,17 +12,20 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.TextView;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.DescriptorExtractor;
@@ -35,6 +36,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,6 +54,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
     DescriptorMatcher matcher;
     Mat descriptors2,descriptors1;
     Mat img1;
+    private static Bitmap bmp, yourSelectedImage, bmpimg1, bmpimg2;
     MatOfKeyPoint keypoints1,keypoints2;
 
     static {
@@ -88,24 +91,25 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         detector = FeatureDetector.create(FeatureDetector.ORB);
         descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
         matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+        //  bmpimg1 = Bitmap.createScaledBitmap(bmpimg1, 100, 100, true);
+
         img1 = new Mat();
         AssetManager assetManager = getAssets();
-        InputStream istr = assetManager.open("aa.jpg");
+        InputStream istr = assetManager.open("aaa.jpg");
 
-
-       Bitmap bitmap = BitmapFactory.decodeStream(istr);
-         Utils.bitmapToMat(bitmap, img1);
+        Bitmap bitmap = BitmapFactory.decodeStream(istr);
+        Utils.bitmapToMat(bitmap, img1);
         Imgproc.cvtColor(img1, img1, Imgproc.COLOR_RGB2GRAY);
-        Log.d("lala3", "lala2type::"+ img1.type());
-                img1.convertTo(img1, 0);
-                //converting the image to match with the type of the cameras image
-        Log.d("lala3", "lala2typeconvert::"+ img1.type());
+        //  Log.d("lala3", "lala2type::"+ img1.type());
+        img1.convertTo(img1, 0);
+        //converting the image to match with the type of the cameras image
+        //   Log.d("lala3", "lala2typeconvert::"+ img1.type());
         descriptors1 = new Mat();
         keypoints1 = new MatOfKeyPoint();
         detector.detect(img1, keypoints1);
-      //  Log.d("hello","hellooo3");
+        //  Log.d("hello","hellooo3");
         descriptor.compute(img1, keypoints1, descriptors1);
-       // Log.d("lala", "lala"+descriptors1.height() + " " + descriptors1.width());
+        // Log.d("lala", "lala"+descriptors1.height() + " " + descriptors1.width());
     }
 
 
@@ -161,31 +165,68 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         w = width;
         h = height;
     }
+
     public void onCameraViewStopped() {
     }
 
     public Mat recognize(Mat aInputFrame) {
+//image detecté par la camera Ainputframe
 
         Imgproc.cvtColor(aInputFrame, aInputFrame, Imgproc.COLOR_RGB2GRAY);
         descriptors2 = new Mat();
         keypoints2 = new MatOfKeyPoint();
         detector.detect(aInputFrame, keypoints2);
         descriptor.compute(aInputFrame, keypoints2, descriptors2);
-        Log.d("lala", "lala2: type: " + aInputFrame.type());
-        // Matching
+
         MatOfDMatch matches = new MatOfDMatch();
+        //   Log.d("lala", "lala2: type: " + aInputFrame.type());
+        // Matching
+       Mat hist1 = new Mat();
+        Mat hist2 = new Mat();
+        MatOfInt histSize = new MatOfInt(180);
+        MatOfInt channels = new MatOfInt(0);
+        MatOfFloat histRanges = new MatOfFloat (0f, 180f);
+        boolean accumulate = false;
+
+
+        ArrayList<Mat> bgr_planes1= new ArrayList<Mat>();
+        ArrayList<Mat> bgr_planes2= new ArrayList<Mat>();
+
+        Core.split(img1, bgr_planes1);
+        Core.split(aInputFrame, bgr_planes2);
+
+        Imgproc.calcHist(bgr_planes1, channels, new Mat(), hist1, histSize, histRanges, accumulate);
+
+        Core.normalize(hist1, hist1, 0, hist1.rows(), Core.NORM_MINMAX, -1, new Mat());
+
+        Imgproc.calcHist(bgr_planes2, channels, new Mat(), hist2, histSize, histRanges, accumulate);
+        Core.normalize(hist2, hist2, 0, hist2.rows(), Core.NORM_MINMAX, -1, new Mat());
+
+
+        Log.d("ImageComparator", "hyst1 :"+hist1);
+
+        Log.d("ImageComparator", "hyst2 :"+hist2);
+
+        double compare = Imgproc.compareHist(hist1, hist2, Imgproc.CV_COMP_CHISQR);
+        Log.d("ImageComparator", "compare: "+compare);
+        if(compare>0 && compare<8000) {
+            Log.d("ImageComparator", "Images detecté !!!!! "+compare);
+
+        }
+
+
         if (img1.type() == aInputFrame.type()) {
             Log.d("Match","img1==inputframe");
             matcher.match(descriptors1, descriptors2, matches);
         } else {
-            Log.d("Match","img1!==inputframe");
+            // Log.d("Match","img1!==inputframe");
             return aInputFrame;
         }
         List<DMatch> matchesList = matches.toList();
-
+        // Log.d("Match","matchs string "+matches.toString());
+        // Log.d("Match","matchs liste "+matches.toList());
         Double max_dist = 0.0;
-        Double min_dist = 100.0;
-
+        Double min_dist = 1500.0;
         for (int i = 0; i < matchesList.size(); i++) {
             Double dist = (double) matchesList.get(i).distance;
             if (dist < min_dist)
@@ -197,18 +238,22 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
         for (int i = 0; i < matchesList.size(); i++) {
             if (matchesList.get(i).distance <= (1.5 * min_dist))
+                //  Log.d("Match","good match1");
                 good_matches.addLast(matchesList.get(i));
         }
+        //   Log.d("Match","match size "+matchesList.size() +" good size "+ good_matches.size());
 
         MatOfDMatch goodMatches = new MatOfDMatch();
         goodMatches.fromList(good_matches);
         Mat outputImg = new Mat();
         MatOfByte drawnMatches = new MatOfByte();
         if (aInputFrame.empty() || aInputFrame.cols() < 1 || aInputFrame.rows() < 1) {
+            Log.d("Match","good match2");
             return aInputFrame;
         }
         Features2d.drawMatches(img1, keypoints1, aInputFrame, keypoints2, goodMatches, outputImg, GREEN, RED, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
         Imgproc.resize(outputImg, outputImg, aInputFrame.size());
+        Log.d("Match","passer action suivante");
 
         return outputImg;
     }
