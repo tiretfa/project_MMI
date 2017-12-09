@@ -41,7 +41,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class EtapeActivity extends AppCompatActivity implements RecognitionListener {
+public class EtapeActivity extends AppCompatActivity  {
 
     TextToSpeech tts;
     Recette recette;
@@ -54,7 +54,8 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
     private SpeechRecognizer speech = null;
     private String LOG_TAG = "VoiceRecognition";
     private int currentStep= 0;
-    private EditText e1;
+    private EditText socketMessage;
+    private TextView txvResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +65,8 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
         Thread myThread = new Thread(new MyServerThread());
         myThread.start();
 
-        e1 = new EditText(this);
+        socketMessage = new EditText(this);
+        txvResult = new TextView(this);
 
         scrollView= findViewById(R.id.scrollView);
         b1= findViewById(R.id.button);
@@ -93,6 +95,49 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
         listViewIngredient.setAdapter(ingredientAdapter);
         Utility.setDynamicHeight(listViewIngredient);
 
+        socketMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if(editable.toString().equals("ok")) {
+                    getSpeechInput(findViewById(android.R.id.content));
+                    Toast.makeText(getApplicationContext(), "" + txvResult.getText().toString(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        txvResult.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if(editable.toString().equals("next")){
+                    Log.i("étape suivante ", "Text en entrée correspond à 'Next' --------------");
+                    currentStep++;
+                    if (currentStep < recette.getEtapes().size()) {
+                        scrollToNextEtape(currentStep);
+                        readStep(currentStep);
+                    }
+                }
+            }
+        });
 
         /* configuration du textToSpeech object */
         tts=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
@@ -103,7 +148,7 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
                 }
             }
          });
-
+        /*
         tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
             @Override
             public void onStart(String utteranceId) {
@@ -164,28 +209,10 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
                       }
                   });
 
-                /*System.out.println("Fin attente --> Lancement de la reconnaissance vocale ");
 
-                // lancement de la reconnaissance vocale
-                runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        speech = SpeechRecognizer.createSpeechRecognizer(EtapeActivity.this);
-                        speech.setRecognitionListener(EtapeActivity.this);
-
-                        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-                        try {
-                            speech.startListening(intent);
-                        } catch (ActivityNotFoundException a) {
-
-                        }
-                    }});
-                    */
             }
         });
+        */
 
          b1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -199,6 +226,35 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
 
     }
 
+    public void getSpeechInput(View view) {
+
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, 10);
+
+        } else {
+            Toast.makeText(this, "Your Device Don't Support Speech Input", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case 10:
+                if (resultCode == RESULT_OK && data != null) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    txvResult.setText(result.get(0));
+
+                }
+                break;
+        }
+    }
+/*
     public void onPause(){
         if(tts !=null){
             tts.stop();
@@ -211,7 +267,7 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
         }
         super.onPause();
     }
-
+*/
 
     private void readStep(int current){
         tts.speak(recette.getEtapes().get(current).getEtape(), TextToSpeech.QUEUE_FLUSH, null, "Engine.KEY_PARAM_UTTERANCE_ID");
@@ -223,7 +279,7 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
         scrollView.smoothScrollTo(0, y );
     }
 
-
+/*
     @Override
     public void onReadyForSpeech(Bundle bundle) {
         Log.i(LOG_TAG, "onReadyForSpeech");
@@ -273,53 +329,7 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
         }
     }
 
-    @Override
-    public void onPartialResults(Bundle bundle) {
-        Log.i(LOG_TAG, "onPartialResults");
-    }
-
-    @Override
-    public void onEvent(int i, Bundle bundle) {
-        Log.i(LOG_TAG, "onEvent");
-    }
-
-    public static String getErrorText(int errorCode) {
-        String message;
-        switch (errorCode) {
-            case SpeechRecognizer.ERROR_AUDIO:
-                message = "Audio recording error";
-                break;
-            case SpeechRecognizer.ERROR_CLIENT:
-                message = "Client side error";
-                break;
-            case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
-                message = "Insufficient permissions";
-                break;
-            case SpeechRecognizer.ERROR_NETWORK:
-                message = "Network error";
-                break;
-            case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
-                message = "Network timeout";
-                break;
-            case SpeechRecognizer.ERROR_NO_MATCH:
-                message = "No match";
-                break;
-            case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
-                message = "RecognitionService busy";
-                break;
-            case SpeechRecognizer.ERROR_SERVER:
-                message = "error from server";
-                break;
-            case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
-                message = "No speech input";
-                break;
-            default:
-                message = "Didn't understand, please try again.";
-                break;
-        }
-        return message;
-    }
-
+*/
     class MyServerThread implements Runnable{
 
         Socket s;
@@ -343,8 +353,8 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
                     h.post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(getApplicationContext(),"server running",Toast.LENGTH_SHORT).show();
-                            e1.setText(message);
+                            //Toast.makeText(getApplicationContext(),"server running",Toast.LENGTH_SHORT).show();
+                            socketMessage.setText(message);
                         }
                     });
                 }

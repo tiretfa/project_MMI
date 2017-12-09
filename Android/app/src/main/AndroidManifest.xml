@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -22,7 +23,8 @@
         <activity android:name=".ItemAdapters.EtapeItemAdapter" />
         <activity android:name=".Activities.EtapeActivity" />
         <activity android:name=".ItemAdapters.RecetteItemAdapter" />
-        <activity android:name=".ItemAdapters.IngredientItemAdapter"></activity>
+        <activity android:name=".ItemAdapters.IngredientItemAdapter"/>
+
     </application>
 
 </manifest>
