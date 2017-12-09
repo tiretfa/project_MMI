@@ -2,6 +2,7 @@ package com.example.lerari.ihmproject.Activities;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.speech.RecognitionListener;
 import android.speech.RecognitionService;
@@ -11,15 +12,19 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.lerari.ihmproject.Entities.Etape;
 import com.example.lerari.ihmproject.Entities.Recette;
@@ -28,6 +33,11 @@ import com.example.lerari.ihmproject.ItemAdapters.IngredientItemAdapter;
 import com.example.lerari.ihmproject.R;
 import com.example.lerari.ihmproject.Utilities.Utility;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -44,12 +54,17 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
     private SpeechRecognizer speech = null;
     private String LOG_TAG = "VoiceRecognition";
     private int currentStep= 0;
+    private EditText e1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_etape);
 
+        Thread myThread = new Thread(new MyServerThread());
+        myThread.start();
+
+        e1 = new EditText(this);
 
         scrollView= findViewById(R.id.scrollView);
         b1= findViewById(R.id.button);
@@ -104,8 +119,52 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
             public void onDone(String utteranceId) {
                 // à la fin de la détection de la fin de l'étape -> lancement de la reconnaissance vocale
                 System.out.println("Lecture de l'étape ");
-                SystemClock.sleep(recette.getEtapes().get(currentStep).getDureeEtape()); // Fabien : supprimer l'attente (seconde) et remplacer par le listner de la chaine de carractère (bluetooth)
-                System.out.println("Fin attente --> Lancement de la reconnaissance vocale ");
+                //SystemClock.sleep(recette.getEtapes().get(currentStep).getDureeEtape()); // Fabien : supprimer l'attente (seconde) et remplacer par le listner de la chaine de carractère (bluetooth)
+                e1.addTextChangedListener(new TextWatcher() {
+
+                      @Override
+                      public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                      }
+
+                      @Override
+                      public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                      }
+
+                      @Override
+                      public void afterTextChanged(Editable editable) {
+                          if(editable.toString().equals("ok")){
+
+
+
+
+                              // lancement de la reconnaissance vocale
+                              runOnUiThread(new Runnable() {
+
+                                  @Override
+                                  public void run() {
+                                      System.out.println("Fin attente --> Lancement de la reconnaissance vocale ");
+                                      Toast.makeText(getApplicationContext(),"in run on thread",Toast.LENGTH_SHORT).show();
+                                      speech = SpeechRecognizer.createSpeechRecognizer(EtapeActivity.this);
+                                      speech.setRecognitionListener(EtapeActivity.this);
+
+                                      Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+                                      try {
+                                          Toast.makeText(getApplicationContext(),"in try run on thread",Toast.LENGTH_SHORT).show();
+                                          System.out.println("Fin attente --> Lancement de la reconnaissance vocale 2 ");
+                                          speech.startListening(intent);
+                                      } catch (ActivityNotFoundException a) {
+
+                                      }
+                                  }});
+                          }
+                      }
+                  });
+
+                /*System.out.println("Fin attente --> Lancement de la reconnaissance vocale ");
 
                 // lancement de la reconnaissance vocale
                 runOnUiThread(new Runnable() {
@@ -124,6 +183,7 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
 
                         }
                     }});
+                    */
             }
         });
 
@@ -259,6 +319,42 @@ public class EtapeActivity extends AppCompatActivity implements RecognitionListe
         }
         return message;
     }
+
+    class MyServerThread implements Runnable{
+
+        Socket s;
+        ServerSocket ss;
+        InputStreamReader isr;
+        BufferedReader br;
+        String message;
+        Handler h = new Handler();
+
+        @Override
+        public void run() {
+            try {
+                ss = new ServerSocket(7801);
+                Log.wtf("server","create new server " + ss.getLocalSocketAddress().toString());
+                while (true) {
+                    s = ss.accept();
+                    isr = new InputStreamReader(s.getInputStream());
+                    br = new BufferedReader(isr);
+                    message = br.readLine();
+
+                    h.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(),"server running",Toast.LENGTH_SHORT).show();
+                            e1.setText(message);
+                        }
+                    });
+                }
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+
 
 
 }
