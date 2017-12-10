@@ -5,13 +5,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.tiretfa.bluetoothtest.MainActivity">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
 
-    <EditText
-        android:id="@+id/textView"
-        android:layout_width="146dp"
-        android:layout_height="65dp"
-        android:text="TextView"
-        tools:layout_editor_absoluteX="136dp"
-        tools:layout_editor_absoluteY="96dp" />
+        <EditText
+            android:id="@+id/textView"
+            android:layout_width="146dp"
+            android:layout_height="65dp"
+            android:text="TextView"
+            tools:layout_editor_absoluteX="119dp"
+            tools:layout_editor_absoluteY="91dp" />
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="sendData"
+            android:text="Button"
+            tools:layout_editor_absoluteX="148dp"
+            tools:layout_editor_absoluteY="282dp" />
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

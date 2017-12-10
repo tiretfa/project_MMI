@@ -109,12 +109,28 @@ public class EtapeActivity extends AppCompatActivity  {
             @Override
             public void afterTextChanged(Editable editable) {
 
-                if(editable.toString().equals("ok")) {
-                    tts.speak("avez-vous terminez vôtre étape ?", TextToSpeech.QUEUE_FLUSH, null, "Engine.KEY_PARAM_UTTERANCE_ID");
-                    while (tts.isSpeaking()){
-                    }
-                    getSpeechInput(findViewById(android.R.id.content));
+                switch (editable.toString())
+                {
+                    case "q":
+                        tts.speak("avez-vous terminez vôtre étape ?", TextToSpeech.QUEUE_FLUSH, null, "Engine.KEY_PARAM_UTTERANCE_ID");
+                        while (tts.isSpeaking()){
+                        }
+                        getSpeechInput(findViewById(android.R.id.content));
+                        break;
+
+                    case "n" :
+                        Log.i("étape suivante ", "Text en entrée correspond à 'Next' --------------");
+                        currentStep++;
+                        if (currentStep < recette.getEtapes().size()) {
+                            scrollToNextEtape(currentStep);
+                            readStep(currentStep);
+                        }
+
+                    default:
+                        break;
                 }
+
+
             }
         });
 
@@ -202,7 +218,7 @@ public class EtapeActivity extends AppCompatActivity  {
 
 
     private void scrollToNextEtape (int currentStep){
-        int y = (int) listViewEtape.getChildAt(currentStep+1).getY() + 600; // position de l'étape courante + longueur de l'item (= 600)
+        int y = (int) listViewEtape.getChildAt(currentStep).getY() + 600; // position de l'étape courante + longueur de l'item (= 600)
         scrollView.smoothScrollTo(0, y );
     }
 

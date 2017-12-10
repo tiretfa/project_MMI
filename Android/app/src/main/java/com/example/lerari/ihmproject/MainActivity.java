@@ -61,11 +61,16 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<Etape> etapes = new ArrayList<Etape>();
         ArrayList<Ingredient> ingredients= new ArrayList<Ingredient>();
 
-        // Fabien : supprimer duréeEtape des objets Etape
+        /* Fabien : supprimer duréeEtape des objets Etape
         etapes.add(new Etape("couper les courgettes ", R.drawable.img1, 2000)) ;
         etapes.add(new Etape("couper les carottes", R.drawable.img2, 2000));
         etapes.add( new Etape( "couper la viande en petit morceaux", R.drawable.img3, 2000));
         etapes.add( new Etape( "mettre le tout dans une casserole", R.drawable.img4, 2000));
+        */
+        etapes.add(new Etape("taillez les poivron en dès", R.drawable.poivron,2000));
+        etapes.add(new Etape("coupez les oignons en dès", R.drawable.oignon,2000));
+
+
 
 
         ingredients.add(new Ingredient("courgette", R.drawable.ing2));
