@@ -95,7 +95,8 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
 
         img1 = new Mat();
         AssetManager assetManager = getAssets();
-        InputStream istr = assetManager.open("aaa.jpg");
+        //InputStream istr = assetManager.open("aaa.jpg");
+        InputStream istr = assetManager.open("planche.jpg");
 
         Bitmap bitmap = BitmapFactory.decodeStream(istr);
         Utils.bitmapToMat(bitmap, img1);
@@ -215,7 +216,7 @@ public class MainActivity extends Activity implements CameraBridgeViewBase.CvCam
         }
 
 
-        if (img1.type() == aInputFrame.type()) {
+        if (img1.type() == aInputFrame.type() && !keypoints2.empty() &&  !keypoints1.empty() ) {
             Log.d("Match","img1==inputframe");
             matcher.match(descriptors1, descriptors2, matches);
         } else {
