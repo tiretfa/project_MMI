@@ -108,9 +108,12 @@ public class EtapeActivity extends AppCompatActivity  {
 
             @Override
             public void afterTextChanged(Editable editable) {
+
                 if(editable.toString().equals("ok")) {
+                    tts.speak("avez-vous terminez vôtre étape ?", TextToSpeech.QUEUE_FLUSH, null, "Engine.KEY_PARAM_UTTERANCE_ID");
+                    while (tts.isSpeaking()){
+                    }
                     getSpeechInput(findViewById(android.R.id.content));
-                    Toast.makeText(getApplicationContext(), "" + txvResult.getText().toString(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -128,7 +131,7 @@ public class EtapeActivity extends AppCompatActivity  {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if(editable.toString().equals("next")){
+                if(editable.toString().equals("oui")){
                     Log.i("étape suivante ", "Text en entrée correspond à 'Next' --------------");
                     currentStep++;
                     if (currentStep < recette.getEtapes().size()) {
@@ -148,71 +151,7 @@ public class EtapeActivity extends AppCompatActivity  {
                 }
             }
          });
-        /*
-        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {
-                // Nothing
-            }
 
-            @Override
-            public void onError(String utteranceId) {
-                // Nothing
-            }
-
-            @Override
-            public void onDone(String utteranceId) {
-                // à la fin de la détection de la fin de l'étape -> lancement de la reconnaissance vocale
-                System.out.println("Lecture de l'étape ");
-                //SystemClock.sleep(recette.getEtapes().get(currentStep).getDureeEtape()); // Fabien : supprimer l'attente (seconde) et remplacer par le listner de la chaine de carractère (bluetooth)
-                e1.addTextChangedListener(new TextWatcher() {
-
-                      @Override
-                      public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                      }
-
-                      @Override
-                      public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                      }
-
-                      @Override
-                      public void afterTextChanged(Editable editable) {
-                          if(editable.toString().equals("ok")){
-
-
-
-
-                              // lancement de la reconnaissance vocale
-                              runOnUiThread(new Runnable() {
-
-                                  @Override
-                                  public void run() {
-                                      System.out.println("Fin attente --> Lancement de la reconnaissance vocale ");
-                                      Toast.makeText(getApplicationContext(),"in run on thread",Toast.LENGTH_SHORT).show();
-                                      speech = SpeechRecognizer.createSpeechRecognizer(EtapeActivity.this);
-                                      speech.setRecognitionListener(EtapeActivity.this);
-
-                                      Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                                      intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-                                      try {
-                                          Toast.makeText(getApplicationContext(),"in try run on thread",Toast.LENGTH_SHORT).show();
-                                          System.out.println("Fin attente --> Lancement de la reconnaissance vocale 2 ");
-                                          speech.startListening(intent);
-                                      } catch (ActivityNotFoundException a) {
-
-                                      }
-                                  }});
-                          }
-                      }
-                  });
-
-
-            }
-        });
-        */
 
          b1.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -254,82 +193,20 @@ public class EtapeActivity extends AppCompatActivity  {
                 break;
         }
     }
-/*
-    public void onPause(){
-        if(tts !=null){
-            tts.stop();
-            tts.shutdown();
-            Log.i("TextToSpeech", "destroy");
-        }
-        if (speech != null) {
-            speech.destroy();
-            Log.i(LOG_TAG, "destroy");
-        }
-        super.onPause();
-    }
-*/
+
 
     private void readStep(int current){
         tts.speak(recette.getEtapes().get(current).getEtape(), TextToSpeech.QUEUE_FLUSH, null, "Engine.KEY_PARAM_UTTERANCE_ID");
         Log.i("reading ",recette.getEtapes().get(current).getEtape());
     }
 
+
     private void scrollToNextEtape (int currentStep){
-        int y = (int) listViewEtape.getChildAt(currentStep).getY() + 600; // position de l'étape courante + longueur de l'item (= 600)
+        int y = (int) listViewEtape.getChildAt(currentStep+1).getY() + 600; // position de l'étape courante + longueur de l'item (= 600)
         scrollView.smoothScrollTo(0, y );
     }
 
-/*
-    @Override
-    public void onReadyForSpeech(Bundle bundle) {
-        Log.i(LOG_TAG, "onReadyForSpeech");
-    }
 
-    @Override
-    public void onBeginningOfSpeech() {
-        Log.i(LOG_TAG, "onBeginningOfSpeech");
-    }
-
-    @Override
-    public void onRmsChanged(float v) {
-
-    }
-
-    @Override
-    public void onBufferReceived(byte[] bytes) {
-        Log.i(LOG_TAG, "onBufferReceived: " + bytes);
-    }
-
-    @Override
-    public void onEndOfSpeech() {
-        Log.i(LOG_TAG, "onEndOfSpeech");
-    }
-
-    @Override
-    public void onError(int errorCode) {
-        String errorMessage = getErrorText(errorCode);
-        Log.d(LOG_TAG, "FAILED " + errorMessage);
-    }
-
-    @Override
-    public void onResults(Bundle results) {
-        Log.i(LOG_TAG, "onResults");
-        ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-
-        // Résultat de la reconnaissance vocale : si c'est égale à Next passer à l'étape suivante
-        if (matches.get(0).equals("next") ){
-            Log.i("étape suivante ", "Text en entrée correspond à 'Next' --------------");
-            currentStep++;
-            if (currentStep < recette.getEtapes().size()) {
-                scrollToNextEtape(currentStep);
-                readStep(currentStep);
-            }
-
-
-        }
-    }
-
-*/
     class MyServerThread implements Runnable{
 
         Socket s;
